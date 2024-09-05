@@ -28,4 +28,12 @@ public interface EmployeeService {
      * @return
      */
     PageResult page(EmployeePageQueryDTO queryDTO);
+
+    /**
+     * 启用禁用员工账号
+     * @param status
+     * @param id
+     * @return
+     */
+    boolean switchStatus(Integer status, Long id);
 }

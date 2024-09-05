@@ -101,4 +101,11 @@ public class EmployeeController {
         return Result.success(page);
     }
 
+    @ApiOperation(value = "启用禁用员工账号")
+    @PostMapping("/status/{status}")
+    public Result switchStatus(@PathVariable Integer status, Long id) {
+        boolean update = employeeService.switchStatus(status, id);
+        return Result.success(update);
+    }
+
 }
