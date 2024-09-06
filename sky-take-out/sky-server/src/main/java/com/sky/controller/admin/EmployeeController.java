@@ -101,10 +101,30 @@ public class EmployeeController {
         return Result.success(page);
     }
 
+    /**
+     * 根据id启用禁用员工账号
+     * @param status
+     * @param id
+     * @return
+     */
     @ApiOperation(value = "启用禁用员工账号")
     @PostMapping("/status/{status}")
     public Result switchStatus(@PathVariable Integer status, Long id) {
         boolean update = employeeService.switchStatus(status, id);
+        return Result.success(update);
+    }
+
+    @ApiOperation(value = "根据id查询员工信息")
+    @GetMapping("/{id}")
+    public Result<Employee> selectById(@PathVariable Long id) {
+        Employee employee = employeeService.selectById(id);
+        return Result.success(employee);
+    }
+
+    @ApiOperation(value = "编辑员工信息")
+    @PutMapping
+    public Result update(@RequestBody EmployeeDTO employeeDTO) {
+        boolean update = employeeService.update(employeeDTO);
         return Result.success(update);
     }
 

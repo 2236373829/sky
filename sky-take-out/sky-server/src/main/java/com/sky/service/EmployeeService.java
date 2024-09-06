@@ -36,4 +36,18 @@ public interface EmployeeService {
      * @return
      */
     boolean switchStatus(Integer status, Long id);
+
+    /**
+     * 根据id查询员工信息
+     * @param id
+     * @return
+     */
+    Employee selectById(Long id);
+
+    /**
+     * 编辑员工信息
+     * @param employeeDTO
+     * @return
+     */
+    boolean update(EmployeeDTO employeeDTO);
 }
