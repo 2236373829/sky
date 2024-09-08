@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sky.mapper.SetmealMapper">
+    <insert id="insert" parameterType="setmeal" useGeneratedKeys="true" keyProperty="id">
+        insert into setmeal(category_id, name, price, status, description, image, create_time, update_time, create_user,
+                            update_user)
+            value (#{categoryId}, #{name}, #{price}, #{status}, #{description}, #{image}, #{createTime}, #{updateTime},
+                   #{createUser}, #{updateUser})
+    </insert>
+
+    <resultMap id="SetmealVOMap" type="com.sky.vo.SetmealVO" autoMapping="true">
+        <id column="id" property="id"/>
+        <result column="category_name" property="categoryName"/>
+        <collection property="setmealDishes" ofType="com.sky.entity.SetmealDish" autoMapping="true">
+            <id column="sd_id" property="id"/>
+            <result column="sd_name" property="name"/>
+            <result column="sd_price" property="price"/>
+        </collection>
+    </resultMap>
+    <select id="page" resultMap="SetmealVOMap">
+        select setmeal.id,
+               setmeal.category_id,
+               setmeal.name,
+               setmeal.price,
+               setmeal.status,
+               setmeal.description,
+               setmeal.image,
+               setmeal.update_time,
+               category.name category_name,
+               setmeal_dish.id sd_id,
+               setmeal_dish.setmeal_id,
+               setmeal_dish.dish_id,
+               setmeal_dish.name sd_name,
+               setmeal_dish.price sd_price,
+               setmeal_dish.copies
+        from setmeal
+                 left join category on setmeal.category_id = category.id
+                 left join setmeal_dish on setmeal.id = setmeal_dish.setmeal_id
+        <where>
+            <if test="name != null and name != ''">and setmeal.name = concat('%', #{name}, '%')</if>
+            <if test="categoryId != null">and category_id = #{categoryId}</if>
+            <if test="status != null">and setmeal.status = #{status}</if>
+        </where>
+    </select>
+
+    <delete id="batchDelete">
+        delete from setmeal where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getById" resultMap="SetmealVOMap">
+        select setmeal.id,
+               setmeal.category_id,
+               setmeal.name,
+               setmeal.price,
+               setmeal.status,
+               setmeal.description,
+               setmeal.image,
+               setmeal.update_time,
+               category.name category_name,
+               setmeal_dish.id sd_id,
+               setmeal_dish.setmeal_id,
+               setmeal_dish.dish_id,
+               setmeal_dish.name sd_name,
+               setmeal_dish.price sd_price,
+               setmeal_dish.copies
+        from setmeal
+                 left join category on setmeal.category_id = category.id
+                 left join setmeal_dish on setmeal.id = setmeal_dish.setmeal_id
+        where setmeal.id = #{id}
+    </select>
+
+    <update id="update" parameterType="setmeal">
+        update setmeal
+        <set>
+            <if test="categoryId != null">category_id = #{categoryId}</if>
+            <if test="name != null and name != ''">, name = #{name}</if>
+            <if test="price != null">, price = #{price}</if>
+            <if test="status != null">, status = #{status}</if>
+            <if test="description != null and description != ''">, description = #{description}</if>
+            <if test="image != null and image != ''">, image = #{image}</if>
+            <if test="updateTime != null">, update_time = #{updateTime}</if>
+            <if test="updateUser != null">, update_user = #{updateUser}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+</mapper>
