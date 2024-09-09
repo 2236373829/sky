@@ -11,3 +11,6 @@ sky:
     access-key-id:
     access-key-secret:
     bucket-name: sky114
+  redis:
+    host: 192.168.204.101
+    port: 6379
