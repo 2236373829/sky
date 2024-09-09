@@ -90,4 +90,12 @@
         </set>
         where id = #{id}
     </update>
+
+    <select id="list" resultType="dish">
+        select * from dish
+        <where>
+            <if test="name != null and name != ''">and name = #{name}</if>
+            <if test="categoryId != null">and category_id = #{categoryId}</if>
+        </where>
+    </select>
 </mapper>

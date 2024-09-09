@@ -88,4 +88,30 @@
         where id = #{id}
     </update>
 
+    <select id="list" parameterType="setmeal" resultType="com.sky.entity.Setmeal">
+        select * from setmeal
+        <where>
+            <if test="name != null">
+                and name like concat('%',#{name},'%')
+            </if>
+            <if test="categoryId != null">
+                and category_id = #{categoryId}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <select id="getDishItemById" resultType="com.sky.vo.DishItemVO">
+        select
+            setmeal_dish.name,
+            setmeal_dish.copies,
+            dish.image,
+            dish.description
+        from setmeal_dish
+        left join dish on setmeal_dish.dish_id = dish.id
+        where setmeal_dish.setmeal_id = #{id}
+    </select>
+
 </mapper>
