@@ -46,7 +46,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
      * 通过knife4j生成接口文档
      * @return
      */
-    @Bean
+    /*@Bean
     public Docket docket() {
         ApiInfo apiInfo = new ApiInfoBuilder()
                 .title("苍穹外卖项目接口文档")
@@ -61,7 +61,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
                 .paths(PathSelectors.any())
                 .build();
         return docket;
-    }
+    }*/
 
     /**
      * 设置静态资源映射
