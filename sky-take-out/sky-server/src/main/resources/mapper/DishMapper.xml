@@ -96,6 +96,7 @@
         <where>
             <if test="name != null and name != ''">and name = #{name}</if>
             <if test="categoryId != null">and category_id = #{categoryId}</if>
+            <if test="status != null">and status = #{status}</if>
         </where>
     </select>
 </mapper>

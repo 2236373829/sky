@@ -10,7 +10,6 @@ import com.sky.vo.DishVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,8 +39,8 @@ public class DishController {
     @ApiOperation(value = "新增菜品")
     @PostMapping
     public Result save(@RequestBody DishDTO dishDTO) {
-        boolean save = service.save(dishDTO);
-        return Result.success(save);
+        service.save(dishDTO);
+        return Result.success();
     }
 
     /**
@@ -98,6 +97,12 @@ public class DishController {
         log.info("修改菜品信息：{}", dishDTO);
         boolean update = service.update(dishDTO);
         return Result.success(update);
+    }
+
+    @PostMapping("/status/{status}")
+    public Result startOrStop(@PathVariable Integer status, Long id) {
+        service.startOrStop(status, id);
+        return Result.success();
     }
 
     /**

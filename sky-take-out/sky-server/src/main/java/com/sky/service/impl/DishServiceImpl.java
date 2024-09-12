@@ -17,11 +17,13 @@ import com.sky.service.DishService;
 import com.sky.vo.DishVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author xyzZero3
@@ -39,13 +41,22 @@ public class DishServiceImpl implements DishService {
     @Autowired
     private SetmealDishMapper setmealDishMapper;
 
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+    /**
+     * 新增菜品
+     *
+     * @param dishDTO
+     * @return
+     */
     @Transactional
     @Override
-    public boolean save(DishDTO dishDTO) {
+    public void save(DishDTO dishDTO) {
         Dish dish = new Dish();
         BeanUtils.copyProperties(dishDTO, dish);
         // 向菜品表插入数据
-        int dishInsert = dishMapper.insert(dish);
+        dishMapper.insert(dish);
 
         // 获取insert语句生成的主键值
         Long dishId = dish.getId();
@@ -56,10 +67,12 @@ public class DishServiceImpl implements DishService {
             flavors.forEach(flavor -> {
                 flavor.setDishId(dishId);
             });
-            int flavorBatchInsert = flavorMapper.batchInsert(flavors);
+            flavorMapper.batchInsert(flavors);
         }
 
-        return false;
+        // 清除缓存数据
+        String key = "dish_" + dishDTO.getCategoryId();
+        this.cleanCache(key);
     }
 
     /**
@@ -111,6 +124,9 @@ public class DishServiceImpl implements DishService {
         // 根据菜品id集合批量删除口味信息
         flavorMapper.deleteByDishIds(ids);
 
+        // 将所有菜品缓存数据清除，所有以"dish_"开头的key
+        this.cleanCache("dish_*");
+
         return 0;
     }
 
@@ -148,12 +164,29 @@ public class DishServiceImpl implements DishService {
                 flavors.forEach(flavor -> {
                     flavor.setDishId(dishDTO.getId());
                 });
+                flavorMapper.batchInsert(flavors);
             }
-            int flavorInsert = flavorMapper.batchInsert(flavors);
+
+            // 将所有菜品缓存数据清除，所有以"dish_"开头的key
+            this.cleanCache("dish_*");
+
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * 起售或停售菜品
+     *
+     * @param status
+     * @param id
+     */
+    @Override
+    public void startOrStop(Integer status, Long id) {
+        dishMapper.startOrStop(status, id);
+        // 将所有菜品缓存数据清除，所有以"dish_"开头的key
+        this.cleanCache("dish_*");
     }
 
     /**
@@ -169,17 +202,33 @@ public class DishServiceImpl implements DishService {
 
     /**
      * 条件查询菜品和口味
-     * @param dish
+     *
+     * @param categoryId
      * @return
      */
-    public List<DishVO> listWithFlavor(Dish dish) {
+    public List<DishVO> listWithFlavor(Long categoryId) {
+        // 构造redis的菜品key
+        String key = "dish_" + categoryId;
+
+        // 查询redis中是否存在菜品数据
+        List<DishVO> dishCache = (ArrayList<DishVO>) redisTemplate.opsForValue().get(key);
+        if (dishCache != null && dishCache.size() != 0) {
+            // 如果存在直接返回，无需查询数据库
+            return dishCache;
+        }
+
+        // 如果不存在，查询数据库并放入redis中
+        Dish dish = new Dish();
+        dish.setCategoryId(categoryId);
+        dish.setStatus(StatusConstant.ENABLE);//查询起售中的菜品
+
         List<Dish> dishList = dishMapper.list(dish);
 
         List<DishVO> dishVOList = new ArrayList<>();
 
         for (Dish d : dishList) {
             DishVO dishVO = new DishVO();
-            BeanUtils.copyProperties(d,dishVO);
+            BeanUtils.copyProperties(d, dishVO);
 
             //根据菜品id查询对应的口味
             List<DishFlavor> flavors = flavorMapper.getByDishId(d.getId());
@@ -188,6 +237,19 @@ public class DishServiceImpl implements DishService {
             dishVOList.add(dishVO);
         }
 
+        // 查询到的数据放入数据库中
+        redisTemplate.opsForValue().set(key, dishVOList);
+
         return dishVOList;
+    }
+
+    /**
+     * 清理缓存数据
+     *
+     * @param pattern
+     */
+    private void cleanCache(String pattern) {
+        Set<String> keys = redisTemplate.keys(pattern);
+        redisTemplate.delete(keys);
     }
 }
