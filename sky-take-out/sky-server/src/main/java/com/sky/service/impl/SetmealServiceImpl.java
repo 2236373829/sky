@@ -19,6 +19,9 @@ import com.sky.vo.DishItemVO;
 import com.sky.vo.SetmealVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +50,7 @@ public class SetmealServiceImpl implements SetmealService {
      */
     @Transactional
     @Override
+    @CacheEvict(cacheNames = "setmealCache", key = "#setmealDTO.id")
     public void save(SetmealDTO setmealDTO) {
         Setmeal setmeal = new Setmeal();
         BeanUtils.copyProperties(setmealDTO, setmeal);
@@ -88,6 +92,7 @@ public class SetmealServiceImpl implements SetmealService {
      */
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "setmealCache", allEntries = true)
     public void batchDelete(List<Long> ids) {
         ids.forEach(id -> {
             SetmealVO setmealVO = setmealMapper.getById(id);
@@ -121,6 +126,7 @@ public class SetmealServiceImpl implements SetmealService {
      */
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "setmealCache", allEntries = true)
     public void update(SetmealDTO setmealDTO) {
         Setmeal setmeal = new Setmeal();
         BeanUtils.copyProperties(setmealDTO, setmeal);
@@ -145,6 +151,7 @@ public class SetmealServiceImpl implements SetmealService {
      * @param id
      */
     @Override
+    @CacheEvict(cacheNames = "setmealCache", allEntries = true)
     public void updateStatus(Integer status, Long id) {
         // 起售套餐时，判断套餐内是否有停售菜品，有停售菜品时不允许起售
         if (status.equals(StatusConstant.ENABLE)) {
@@ -167,11 +174,16 @@ public class SetmealServiceImpl implements SetmealService {
     /**
      * 根据分类id查询套餐
      *
-     * @param setmeal
+     * @param categoryId
      * @return
      */
+    @Cacheable(cacheNames = "setmealCache", key = "#categoryId") // key: setmealCache::100
     @Override
-    public List<Setmeal> list(Setmeal setmeal) {
+    public List<Setmeal> list(Long categoryId) {
+        Setmeal setmeal = new Setmeal();
+        setmeal.setCategoryId(categoryId);
+        setmeal.setStatus(StatusConstant.ENABLE);
+
         return setmealMapper.list(setmeal);
     }
 
