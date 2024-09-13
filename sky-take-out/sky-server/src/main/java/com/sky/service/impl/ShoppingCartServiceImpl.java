@@ -132,4 +132,12 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             mapper.updateById(cart);
         }
     }
+
+    /**
+     * 清空购物车
+     */
+    @Override
+    public void cleanShoppingCart() {
+        mapper.cleanShoppingCart(BaseContext.getCurrentId());
+    }
 }
