@@ -50,7 +50,7 @@ public class SetmealServiceImpl implements SetmealService {
      */
     @Transactional
     @Override
-    @CacheEvict(cacheNames = "setmealCache", key = "#setmealDTO.id")
+    @CacheEvict(cacheNames = "setmealCache", key = "#setmealDTO.categoryId")
     public void save(SetmealDTO setmealDTO) {
         Setmeal setmeal = new Setmeal();
         BeanUtils.copyProperties(setmealDTO, setmeal);
@@ -95,9 +95,9 @@ public class SetmealServiceImpl implements SetmealService {
     @CacheEvict(cacheNames = "setmealCache", allEntries = true)
     public void batchDelete(List<Long> ids) {
         ids.forEach(id -> {
-            SetmealVO setmealVO = setmealMapper.getById(id);
+            Setmeal setmeal = setmealMapper.getById(id);
             // 起售中的套餐不能删除
-            if (StatusConstant.ENABLE.equals(setmealVO.getStatus())) {
+            if (StatusConstant.ENABLE.equals(setmeal.getStatus())) {
                 throw new DeletionNotAllowedException(MessageConstant.SETMEAL_ON_SALE);
             }
         });
@@ -116,7 +116,7 @@ public class SetmealServiceImpl implements SetmealService {
      */
     @Override
     public SetmealVO getById(Long id) {
-        return setmealMapper.getById(id);
+        return setmealMapper.getDetailById(id);
     }
 
     /**

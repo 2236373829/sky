@@ -51,7 +51,7 @@
         </foreach>
     </delete>
 
-    <select id="getById" resultMap="SetmealVOMap">
+    <select id="getDetailById" resultMap="SetmealVOMap">
         select setmeal.id,
                setmeal.category_id,
                setmeal.name,

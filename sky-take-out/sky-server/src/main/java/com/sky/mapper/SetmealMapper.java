@@ -41,12 +41,22 @@ public interface SetmealMapper {
     Page<SetmealVO> page(SetmealPageQueryDTO setmealDTO);
 
     /**
+     * 根据id获取套餐详情信息
+     *
+     * @param id
+     * @return
+     */
+    SetmealVO getDetailById(Long id);
+
+    /**
      * 根据id获取套餐信息
      *
      * @param id
      * @return
      */
-    SetmealVO getById(Long id);
+    @Select("select id, category_id, name, price, status, description, image, create_time, update_time, create_user, update_user" +
+            " from setmeal where id = #{id}")
+    Setmeal getById(Long id);
 
     /**
      * 批量删除套餐数据
