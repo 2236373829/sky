@@ -22,7 +22,6 @@ import java.util.List;
  */
 @Service
 public class ShoppingCartServiceImpl implements ShoppingCartService {
-
     private final ShoppingCartMapper mapper;
 
     private final DishMapper dishMapper;
@@ -52,9 +51,17 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
         if (!shoppingCartList.isEmpty()) { // 如果已经存在，只需要将数量+1
             ShoppingCart cart = shoppingCartList.get(0);
-            cart.setNumber(cart.getNumber() + 1);
-            cart.setAmount(cart.getAmount().multiply(new BigDecimal(cart.getNumber()))); // 设置新的金额
 
+            cart.setNumber(cart.getNumber() + 1); // 数量+1
+            // 修改菜品价格
+            if (cart.getDishId() != null) {
+                BigDecimal dishPrice = dishMapper.getById(cart.getDishId()).getPrice();
+                cart.setAmount(dishPrice.multiply(new BigDecimal(cart.getNumber()))); // 设置新的菜品金额
+            } else {
+                // 修改套餐价格
+                BigDecimal setmealPrice = setmealMapper.getById(cart.getSetmealId()).getPrice();
+                cart.setAmount(setmealPrice.multiply(new BigDecimal(cart.getNumber()))); // 设置新的套餐金额
+            }
             mapper.updateById(cart);
 
         } else { // 不存在则添加购物车数据
@@ -93,5 +100,36 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                 .userId(BaseContext.getCurrentId())
                 .build();
         return mapper.list(shoppingCart);
+    }
+
+    /**
+     * 购物车菜品-1
+     */
+    @Override
+    public void sub(ShoppingCartDTO cartDTO) {
+        ShoppingCart shoppingCart = new ShoppingCart();
+        BeanUtils.copyProperties(cartDTO, shoppingCart);
+
+        ShoppingCart cart = mapper.list(shoppingCart).get(0); // 获取当前菜品或套餐信息
+
+        if (cart.getNumber() == 1) { // 如果菜品数量为1，就删除当前数据
+            mapper.deleteById(cart.getId());
+
+        } else { // 如果不为1，则进行-1操作
+            int dishNumber = cart.getNumber() - 1; // 数量-1
+            cart.setNumber(dishNumber); // 设置购物车菜品数量
+
+            if (cart.getDishId() != null) { // 修改菜品价格
+                BigDecimal dishPrice = dishMapper.getById(cart.getDishId()).getPrice();
+                BigDecimal dishAmount = dishPrice.multiply(new BigDecimal(dishNumber)); // 数量-1后的总价
+                cart.setAmount(dishAmount);
+
+            } else { // 修改套餐价格
+                BigDecimal setmealPrice = setmealMapper.getById(cart.getSetmealId()).getPrice();
+                BigDecimal setmealAmount = setmealPrice.multiply(new BigDecimal(dishNumber)); // 数量-1后的总价
+                cart.setAmount(setmealAmount);
+            }
+            mapper.updateById(cart);
+        }
     }
 }

@@ -12,4 +12,17 @@
             <if test="dishFlavor != null">and dish_flavor = #{dishFlavor}</if>
         </where>
     </select>
+
+    <update id="updateById">
+        update shopping_cart set number = #{number},amount = #{amount}
+        <where>
+            <if test="id != null">and id = #{id}</if>
+            <if test="dishId != null">and dish_id = #{dishId}</if>
+            <if test="dishFlavor != null and dishId != ''">and dish_flavor = #{dishId}</if>
+        </where>
+    </update>
+
+    <delete id="deleteById">
+        delete from shopping_cart where id = #{id}
+    </delete>
 </mapper>
