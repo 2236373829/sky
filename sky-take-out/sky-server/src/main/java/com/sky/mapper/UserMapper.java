@@ -26,4 +26,7 @@ public interface UserMapper {
      * @param user
      */
     void registerUser(User user);
+
+    @Select("select id, openid, name, phone, sex, id_number, avatar, create_time from user where id = #{id}")
+    User getById(Long id);
 }
