@@ -32,4 +32,11 @@ public interface OrderService {
      * @param outTradeNo
      */
     void paySuccess(String outTradeNo);
+
+    /**
+     * 客户催单
+     *
+     * @param id
+     */
+    void reminder(Long id);
 }
