@@ -258,10 +258,15 @@ public class OrderServiceImpl implements OrderService {
         // 查询该订单对应的菜品/套餐明细
         List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(orders.getId());
 
+        // 查询订单地址
+        AddressBook address = addressBookMapper.getById(orders.getAddressBookId());
+        String fullAddress = String.join("", address.getProvinceName(), address.getCityName(), address.getDistrictName(), address.getDetail());
+
         // 将该订单及其详情封装到OrderVO并返回
         OrderVO orderVO = new OrderVO();
         BeanUtils.copyProperties(orders, orderVO);
         orderVO.setOrderDetailList(orderDetailList);
+        orderVO.setAddress(fullAddress);
 
         return orderVO;
     }
@@ -391,6 +396,10 @@ public class OrderServiceImpl implements OrderService {
                 OrderVO orderVO = new OrderVO();
                 BeanUtils.copyProperties(orders, orderVO);
                 String orderDishes = this.getOrderDishesStr(orders);
+
+                // 查询订单地址
+                AddressBook address = addressBookMapper.getById(orders.getAddressBookId());
+                orderVO.setAddress(address.getProvinceName() + address.getCityName() + address.getDistrictName() + address.getDetail());
 
                 // 将订单菜品信息封装到orderVO中，并添加到orderVOList
                 orderVO.setOrderDishes(orderDishes);
