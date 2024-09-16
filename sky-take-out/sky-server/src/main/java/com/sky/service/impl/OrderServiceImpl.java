@@ -1,5 +1,6 @@
 package com.sky.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
@@ -13,6 +14,7 @@ import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -38,17 +41,21 @@ public class OrderServiceImpl implements OrderService {
     private final ShoppingCartMapper shoppingCartMapper;
     private final UserMapper userMapper;
     private final WeChatPayUtil weChatPayUtil;
+    private final WebSocketServer webSocketServer;
+
+    private Orders orders;
 
     @Autowired
     public OrderServiceImpl(OrderMapper orderMapper, OrderDetailMapper orderDetailMapper,
                             AddressBookMapper addressBookMapper, ShoppingCartMapper shoppingCartMapper,
-                            UserMapper userMapper, WeChatPayUtil weChatPayUtil) {
+                            UserMapper userMapper, WeChatPayUtil weChatPayUtil, WebSocketServer webSocketServer) {
         this.orderMapper = orderMapper;
         this.orderDetailMapper = orderDetailMapper;
         this.addressBookMapper = addressBookMapper;
         this.shoppingCartMapper = shoppingCartMapper;
         this.userMapper = userMapper;
         this.weChatPayUtil = weChatPayUtil;
+        this.webSocketServer = webSocketServer;
     }
 
     /**
@@ -86,6 +93,7 @@ public class OrderServiceImpl implements OrderService {
         orders.setPhone(addressBook.getPhone()); // 设置订单手机号
         orders.setConsignee(addressBook.getConsignee()); // 设置收货人
         orders.setUserId(userId); // 设置用户id
+        this.orders = orders;
         orderMapper.insert(orders); // 插入订单数据
 
         // 2.向订单明细表插入n条数据
@@ -154,6 +162,15 @@ public class OrderServiceImpl implements OrderService {
 
         log.info("调用updateStatus，用于替换微信支付更新数据库状态的问题");
         orderMapper.updateStatus(orderStatus, orderPaidStatus, check_out_time, orderNumber);
+
+        // 通过websocket向客户端浏览器推送消息
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("type", 1); // 1表示来单提醒 2表示客户催单
+        map.put("orderId", this.orders.getId());
+        map.put("content", "订单号：" + this.orders.getNumber());
+
+        String jsonString = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(jsonString);
 
         return vo;
     }
