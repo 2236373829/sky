@@ -73,4 +73,12 @@
         order by order_time desc
     </select>
 
+    <select id="orderCount" resultType="java.lang.Integer">
+        select count(1) from orders
+        <where>
+            <if test="today != null">and order_time like concat('%', #{today}, '%')</if>
+            <if test="status != null">and status = #{status}</if>
+        </where>
+    </select>
+
 </mapper>

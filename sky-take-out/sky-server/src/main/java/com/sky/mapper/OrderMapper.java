@@ -10,6 +10,7 @@ import org.apache.ibatis.annotations.Update;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author xyzZero3
@@ -86,6 +87,15 @@ public interface OrderMapper {
     @Select("select count(id) from orders where status = #{status}")
     Integer countStatus(Integer status);
 
+    /**
+     * 统计指定时间区间内的营业额数据
+     *
+     * @param date
+     * @param status
+     * @return
+     */
     @Select("select sum(amount) from orders where status = #{status} and order_time like concat('%', #{date}, '%')")
     Double sumByMap(LocalDate date, Integer status);
+
+    Integer orderCount(Map<String, Object> map);
 }
