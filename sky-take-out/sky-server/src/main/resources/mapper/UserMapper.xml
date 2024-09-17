@@ -7,4 +7,12 @@
         insert into user(openid, name, phone, sex, id_number, avatar, create_time)
         values (#{openid}, #{name}, #{phone}, #{sex}, #{idNumber}, #{avatar}, #{createTime})
     </insert>
+
+    <select id="countByMap" resultType="java.lang.Integer">
+        select count(1) from user
+        <where>
+            <if test="beforeToday != null">and create_time &lt; #{beforeToday}</if>
+            <if test="today != null">and create_time like concat('%', #{today}, '%')</if>
+        </where>
+    </select>
 </mapper>
