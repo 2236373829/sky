@@ -49,17 +49,17 @@ public class WorkspaceServiceImpl implements WorkspaceService {
          * 新增用户：当日新增用户的数量
          */
 
-        Map map = new HashMap();
-        map.put("begin",begin);
-        map.put("end",end);
+        Map<String, Object> map = new HashMap<>();
+        map.put("begin",LocalDateTime.of(begin, LocalTime.MIN));
+        map.put("end",LocalDateTime.of(end, LocalTime.MAX));
 
         //查询总订单数
         Integer totalOrderCount = orderMapper.orderCount(map);
 
         map.put("status", Orders.COMPLETED);
         //营业额
-        Double turnover = orderMapper.sumByMap(begin, Orders.COMPLETED);
-        turnover = turnover == null? 0.0 : turnover;
+        Double turnover = orderMapper.sumByMap(map);
+        turnover = turnover == null ? 0.0 : turnover;
 
         //有效订单数
         Integer validOrderCount = orderMapper.orderCount(map);
@@ -93,7 +93,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
      * @return
      */
     public OrderOverViewVO getOrderOverView() {
-        Map map = new HashMap();
+        Map<String, Object> map = new HashMap<>();
         map.put("begin", LocalDateTime.now().with(LocalTime.MIN));
         map.put("status", Orders.TO_BE_CONFIRMED);
 
